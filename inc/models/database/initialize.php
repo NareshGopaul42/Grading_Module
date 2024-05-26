@@ -1,44 +1,75 @@
 <?php
     class Database{
        
-    
+
         private $createStatements = [
-            "CREATE TABLE IF NOT EXISTS Menu(   
-                id INT AUTO_INCREMENT,
-                course VARCHAR(15) NOT NULL,
-                Name VARCHAR(30) NOT NULL,
-                Description TEXT NOT NULL,
-                price INT NOT NULL,
-                allergens VARCHAR(100) NOT NULL,
-                image_path VARCHAR(255),
-                PRIMARY KEY(id)
+
+            //Table for Courses
+            "CREATE TABLE Course (
+                courseId VARCHAR(255) PRIMARY KEY,
+                courseName VARCHAR(255) NOT NULL,
+                description TEXT
             );",
-            "CREATE TABLE IF NOT EXISTS Bills (
-                bill_id INT PRIMARY KEY AUTO_INCREMENT,
-                total_amount DECIMAL(10, 2),
-                date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
-                
-            "CREATE TABLE IF NOT EXISTS Items (
-                item_id INT PRIMARY KEY AUTO_INCREMENT,
-                bill_id INT,
-                item_name VARCHAR(255),
-                quantity INT,
-                unit_price DECIMAL(10, 2),
-                FOREIGN KEY (bill_id) REFERENCES Bills(bill_id) ON DELETE CASCADE
+            
+            //Table for AssessmentStructures
+            "CREATE TABLE AssessmentStructure (
+                assessmentId VARCHAR(255) PRIMARY KEY,
+                courseId VARCHAR(255),
+                assessmentName VARCHAR(255) NOT NULL,
+                FOREIGN KEY (courseId) REFERENCES Course(courseId)
             );",
-            "CREATE TABLE IF NOT EXISTS employees(
-                employee_id INT AUTO_INCREMENT,
-                first_name VARCHAR(30) NOT NULL,
-                last_name VARCHAR(30) NOT NULL,
-                email VARCHAR(100) NOT NULL UNIQUE,
-                birth_date DATE NOT NULL,
-                hire_date DATE NOT NULL,
-                position VARCHAR(50),
-                department VARCHAR(50),
-                salary DECIMAL(10, 2),
-                password VARCHAR(255) NOT NULL,
-                PRIMARY KEY (employee_id)
-            );" 
+            
+            //Table for Sections
+            "CREATE TABLE Section (
+                sectionId VARCHAR(255) PRIMARY KEY,
+                assessmentId VARCHAR(255),
+                sectionName VARCHAR(255) NOT NULL,
+                maxScore DOUBLE,
+                FOREIGN KEY (assessmentId) REFERENCES AssessmentStructure(assessmentId)
+            );",
+            
+            //Table for GroupContributionReports
+            "CREATE TABLE GroupContributionReport (
+                reportId VARCHAR(255) PRIMARY KEY,
+                groupId VARCHAR(255) NOT NULL,
+                members TEXT  -- List of Member IDs as JSON or another suitable format
+            );",
+            
+            //Table for Members
+            "CREATE TABLE Member (
+                memberId VARCHAR(255) PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                groupId VARCHAR(255),
+                contributionPercent DOUBLE
+            );",
+            
+            // Table for Scores
+            "CREATE TABLE Score (
+                scoreId VARCHAR(255) PRIMARY KEY,
+                memberId VARCHAR(255),
+                sectionId VARCHAR(255),
+                scoreValue DOUBLE,
+                FOREIGN KEY (memberId) REFERENCES Member(memberId),
+                FOREIGN KEY (sectionId) REFERENCES Section(sectionId)
+            );",
+            
+            //Table for Comments
+            "CREATE TABLE Comment (
+                commentId VARCHAR(255) PRIMARY KEY,
+                memberId VARCHAR(255),
+                content TEXT,
+                FOREIGN KEY (memberId) REFERENCES Member(memberId)
+            );",
+            
+            //Table for CourseMember (many-to-many relationship between Course and Member)
+            "CREATE TABLE CourseMember (
+                memberId VARCHAR(255),
+                courseId VARCHAR(255),
+                PRIMARY KEY (memberId, courseId),
+                FOREIGN KEY (memberId) REFERENCES Member(memberId),
+                FOREIGN KEY (courseId) REFERENCES Course(courseId)
+            );",
+            
         ];
 
         protected $pdo; 
@@ -46,7 +77,7 @@
         public function __construct(){
             // connect to database and configure PDO to throw and execption if errors occur 
             $host = 'localhost';
-            $db = 'karenskitchen';
+            $db = 'dcs_grades';
             $user = 'root';
             $password = '';
             $dsn = "mysql:host=$host;dbname=$db;charset=UTF8";

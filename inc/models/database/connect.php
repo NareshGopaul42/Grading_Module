@@ -2,7 +2,7 @@
 
     function connect() {
         $host = 'localhost';
-        $db = 'karenskitchen';
+        $db = 'dcs_grades';
         $user = 'root';
         $password = '';
 
